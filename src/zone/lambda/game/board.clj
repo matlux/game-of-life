@@ -169,6 +169,20 @@
                            (format "| %s |\n%s\n" c line)
                            (format "| %s " c))) (range 1 (inc (* column-nb raw-nb)))))))
 
+(defn render-board-no-border [raw-nb column-nb board-state]
+  (let [line (generate-line column-nb)
+        pieces-pos board-state ;(into {} board-state)
+        ]
+    (apply str "\n"
+           (map #(let [pos (c1dto2d column-nb (dec %))
+                       c (name (get pieces-pos pos " "))]
+                   (if (zero? (mod % column-nb))
+                           (format "%s \n" c)
+                           (format "%s " c))) (range 1 (inc (* column-nb raw-nb)))))))
+
 
 (defn display-board [raw-nb column-nb board]
   (println (render-board raw-nb column-nb (board2xy-map-piece raw-nb column-nb board))))
+
+(defn display-board-no-border [raw-nb column-nb board]
+  (println (render-board-no-border raw-nb column-nb (board2xy-map-piece raw-nb column-nb board))))
