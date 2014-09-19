@@ -87,6 +87,7 @@
 
 ;; Quil stuff
 (def arena (atom test-board))
+;;(reset! arena test-board)
 
 (def size "size of the square arena" column-nb)
 (def scale 10)
@@ -108,7 +109,7 @@
   (dosync
     (doseq [x (range 0 size)
             y (range 0 size)]
-      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) 150)]
+      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
         (q/fill (q/color hue 255 255))
         (q/rect (* scale x) (* scale y) scale scale)))))
 
@@ -212,11 +213,11 @@
  )
 
 (defn apply-rules [board]
-  (into []  (map (fn [i]
-          (let [mov (partial move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
-                                                          (mov -1 0) i           (mov +1 0)
-                                                          (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
-        (range (* column-nb raw-nb)))))
+  (mapv (fn [i]
+         (let [mov (partial move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
+                                                         (mov -1 0) i           (mov +1 0)
+                                                         (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
+       (range (* column-nb raw-nb))))
 
 ;;(index '( 5 4 3 2))
 ;;(apply-rules test-board)
