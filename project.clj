@@ -5,5 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/algo.monads "0.1.4"]
-                 [org.clojure/math.numeric-tower "0.0.3"]]
+                 [org.clojure/math.numeric-tower "0.0.3"]
+                 [quil "2.2.2"]
+                 ]
   :main game-of-life.core)

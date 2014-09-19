@@ -1,19 +1,11 @@
 (ns game-of-life.core
   (:require
    [net.matlux.utils :refer [unfold dbg]]
-   [zone.lambda.game.board :as board :refer [pos-between BLANK]])
+   [zone.lambda.game.board :as board :refer [pos-between BLANK]]
+   [quil.core :as q])
   )
 
-
-(def column-nb 60)
-(def raw-nb 60)
-(def c2dto1d (partial board/c2dto1d column-nb))
-(def c1dto2d (partial board/c1dto2d column-nb))
-
-(def display (partial board/display-board-no-border raw-nb column-nb))
-
-(def initial-board
-  (into [] (map (fn [_] :.) (range (* column-nb raw-nb)))))
+;; board logic
 (def test-board
   [
    :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :. :.
@@ -83,6 +75,52 @@
 
    ])
 
+(def column-nb 60)
+(def raw-nb 60)
+(def c2dto1d (partial board/c2dto1d column-nb))
+(def c1dto2d (partial board/c1dto2d column-nb))
+
+(def display (partial board/display-board-no-border raw-nb column-nb))
+
+(def initial-board
+  (into [] (map (fn [_] :.) (range (* column-nb raw-nb)))))
+
+;; Quil stuff
+(def arena (atom test-board))
+
+(def size "size of the square arena" column-nb)
+(def scale 10)
+(def sleep-length "time in ms between turns" 100)
+
+
+(defn blank-arena []
+  (dosync
+    (doseq [row arena r row]
+      (ref-set r nil))))
+
+(defn setup []
+  (q/color-mode :hsb)
+  (q/smooth)
+  (q/frame-rate 10))
+
+(defn draw []
+  (q/background 0)
+  (dosync
+    (doseq [x (range 0 size)
+            y (range 0 size)]
+      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) 150)]
+        (q/fill (q/color hue 255 255))
+        (q/rect (* scale x) (* scale y) scale scale)))))
+
+(q/defsketch gameoflife
+  :title "game of life"
+  :setup setup
+  :draw draw
+  :size [(* scale size) (* scale size)])
+
+
+;;; game of life logic
+
 
 
 (def test-board2
@@ -133,12 +171,6 @@
 (defn neighbour-count [block]
   (count (filter #(= % :X) (neighbour-cells block))))
 
-(neighbour-count test-block)
-
-;; (neighbour-count [:. :. :. :X :X :X :. :. :.])
-;; (subvec [:. :. :. :X :y :z :. :. :.] 0 4)
-;; (subvec [:. :. :. :X :y :z :. :. :.] 5 9)
-;;(subvec '(:. :. :. :X :X :X :. :. :.) 0 5)
 
 (defn is-alive? [board i]
   (= (get board i) :X))
@@ -148,9 +180,9 @@
 (defn coords2state [board coords]
   (map #(get board %) coords))
 
-(coords2state test-board [6  7  8
-                          11 12 13
-                          16 17 18])
+;; (coords2state test-board [6  7  8
+;;                           11 12 13
+;;                           16 17 18])
 
 (defn parse-block [board block-coords]
   (let [i (get block-coords 4)
@@ -195,7 +227,8 @@
        (range (* column-nb raw-nb)))
 
 (defn game-of-life-step [{:keys [board] :as state}]
-  (display board)
+  ;;(display board)
+  (reset! arena board)
   (let [new-board (apply-rules board)]
     {:board new-board}))
 
