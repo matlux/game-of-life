@@ -75,18 +75,17 @@
 
    ])
 
-(def column-nb 60)
-(def raw-nb 60)
+(def column-nb 120)
+(def raw-nb 120)
 (def c2dto1d (partial board/c2dto1d column-nb))
 (def c1dto2d (partial board/c1dto2d column-nb))
 
 (def display (partial board/display-board-no-border raw-nb column-nb))
+(def initial-board (into []  (apply concat (repeatedly 4 (fn [] test-board)))))
 
-(def initial-board
-  (into [] (map (fn [_] :.) (range (* column-nb raw-nb)))))
 
 ;; Quil stuff
-(def arena (atom test-board))
+(def arena (atom initial-board))
 ;;(reset! arena test-board)
 
 (def size "size of the square arena" column-nb)
@@ -250,7 +249,7 @@
 
 
 (defn play []
-  (dorun (iterate game-of-life-step {:board test-board})))
+  (dorun (iterate game-of-life-step {:board initial-board})))
 
 (defn -main []
   (play))
