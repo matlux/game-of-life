@@ -2,7 +2,7 @@
 
 A Clojure implementation of the famous Conway's game of life.
 
-It's implemented in 60 x 60 matrix and displayis in multicolor using Quil.
+It's implemented in 60 x 60 matrix and displays in multicolor using Quil.
 
 ## Usage
 
