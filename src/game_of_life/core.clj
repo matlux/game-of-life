@@ -102,7 +102,7 @@
 (defn setup []
   (q/color-mode :hsb)
   (q/smooth)
-  (q/frame-rate 10))
+  (q/frame-rate 20))
 
 (defn draw []
   (q/background 0)
@@ -213,11 +213,11 @@
  )
 
 (defn apply-rules [board]
-  (mapv (fn [i]
-         (let [mov (partial move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
-                                                         (mov -1 0) i           (mov +1 0)
-                                                         (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
-       (range (* column-nb raw-nb))))
+  (into [] (pmap (fn [i]
+           (let [mov (partial move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
+                                                           (mov -1 0) i           (mov +1 0)
+                                                           (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
+         (range (* column-nb raw-nb)))))
 
 ;;(index '( 5 4 3 2))
 ;;(apply-rules test-board)
