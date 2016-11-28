@@ -1,7 +1,7 @@
 (ns game-of-life.core
   #?(:clj (:require
    [quil.core :as q])
-  )))
+  ))
 
 ;; board logic
 (def test-board
