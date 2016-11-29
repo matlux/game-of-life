@@ -1,7 +1,10 @@
 (ns game-of-life.core
   #?(:clj (:require
-   [quil.core :as q])
+            [net.matlux.utils :refer [display-assert]]
+            [quil.core :as q])
   ))
+
+
 
 ;; board logic
 (def test-board
@@ -74,8 +77,8 @@
     ])
 
 (defn abs [n]
-  (if (< n 0) 
-    -n
+  (if (< n 0)
+    (- 0 n)
     n))
 
 (def ^:dynamic *file-key* \a)
@@ -111,7 +114,7 @@
        (- column-nb)))
 
 (defn- coord2file [column-nb x]
-  {:pre [(display-assert (and (< x column-nb) (>= x 0)) column-nb x)]}
+  ;{:pre [(display-assert (and (< x column-nb) (>= x 0)) column-nb x)]}
   (->> (int *file-key*)
        (+ x)
        char))
@@ -131,7 +134,7 @@
 
 
 (defn coord2pos [column-nb [x y]]
-  {:pre [(display-assert (and (number? x)(number? y)))]}
+  ;{:pre [(display-assert (and (number? x)(number? y)))]}
   (let [
          file (coord2file column-nb x)
          rank (coord2rank column-nb y)]
@@ -179,11 +182,11 @@
 (defn is-piece? [piece]
   (Character/isLetter (.charAt (name piece) 0)))
 
-(defn lookup [column-nb ^PersistentVector board ^String pos]
+(defn lookup [column-nb board ^String pos]
   {:pre [(string? pos)]}
   (let [[file rank] pos]
     (board (index column-nb file rank))))
-(defn lookup-xy [column-nb ^PersistentVector board ^PersistentVector pos]
+(defn lookup-xy [column-nb board pos]
   {:pre [(display-assert (and (vector? pos) (number? (first pos))) pos)]}
   (lookup column-nb board (coord2pos column-nb pos)))
 
@@ -329,12 +332,12 @@
 (def scale 10)
 (def sleep-length "time in ms between turns" 100)
 
-(defn draw []
-    (doseq [x (range 0 size)
-            y (range 0 size)]
-      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
-        
-        (rect (* x scale) (* y scale)  (if hue "green" "dodgerblue")))))
+#?(:cljs (defn draw []
+               (doseq [x (range 0 size)
+                       y (range 0 size)]
+                      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
+
+                                (rect (* x scale) (* y scale) (if hue "green" "dodgerblue"))))))
 
 (def test-board2
   [:. :. :. :. :.
@@ -419,38 +422,42 @@
     {:board new-board}))
 
 
-#?(:clj (defn blank-arena []
-  (dosync
-    (doseq [row arena r row]
-      (ref-set r nil))))
+#?(:clj
+   (do
+     (defn blank-arena []
+       (dosync
+         (doseq [row arena r row]
+           (ref-set r nil))))
 
-(defn setup []
-  (q/color-mode :hsb)
-  (q/smooth)
-  (q/frame-rate 10))
+     (defn setup []
+       (q/color-mode :hsb)
+       (q/smooth)
+       (q/frame-rate 10))
 
-(defn draw []
-  (q/background 0)
-  (dosync
-    (doseq [x (range 0 size)
-            y (range 0 size)]
-      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
-        (q/fill (q/color hue 255 255))
-        (q/rect (* scale x) (* scale y) scale scale)))))
+     (defn draw []
+       (q/background 0)
+       (dosync
+         (doseq [x (range 0 size)
+                 y (range 0 size)]
+           (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
+             (q/fill (q/color hue 255 255))
+             (q/rect (* scale x) (* scale y) scale scale)))))
 
-(q/defsketch gameoflife
-  :title "game of life"
-  :setup setup
-  :draw draw
-  :size [(* scale size) (* scale size)])
+     (q/defsketch gameoflife
+                  :title "game of life"
+                  :setup setup
+                  :draw draw
+                  :size [(* scale size) (* scale size)])
 
 
-(defn play []
-  (dorun (iterate game-of-life-step {:board test-board})))
+     (defn play []
+       (dorun (iterate game-of-life-step {:board test-board})))
 
-(defn -main []
-  (play))
-)
+
+
+
+     (defn -main []
+       (play))))
 
 
 
