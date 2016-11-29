@@ -332,12 +332,6 @@
 (def scale 10)
 (def sleep-length "time in ms between turns" 100)
 
-#?(:cljs (defn draw []
-               (doseq [x (range 0 size)
-                       y (range 0 size)]
-                      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
-
-                                (rect (* x scale) (* y scale) (if hue "green" "dodgerblue"))))))
 
 (def test-board2
   [:. :. :. :. :.
@@ -407,6 +401,12 @@
 
     ))
 )
+#?(:cljs (defn draw []
+               (doseq [x (range 0 size)
+                       y (range 0 size)]
+                      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
+
+                                (rect (* x scale) (* y scale) (if hue "green" "dodgerblue"))))))
 
 (defn apply-rules [board]
   (mapv (fn [i]
