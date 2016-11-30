@@ -11,13 +11,13 @@
 <body class="container">
 
 
-<pre ><code class="language-klipse"
+<pre ><code class="klipse"
 data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-host-clojurescript/src">
 (require '[game-of-life.core :refer [move arena test-board parse-block column-nb raw-nb c2dto1d size scale]])
 </code></pre>
 
 <pre >
-<code class="language-klipse" >
+<code class="klipse" >
 (def canvas (atom nil))
 (def colour (atom "green"))
 
@@ -53,7 +53,7 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 
 
 
-<pre ><code class="language-klipse" >
+<pre ><code class="klipse" >
 
 (defn apply-rules [board]
   (mapv (fn [i]
@@ -79,7 +79,7 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 
 
 <pre >
-<code class="language-klipse" data-eval-idle-msec="10000">
+<code class="klipse" data-eval-idle-msec="10000">
 
 ;(reset! colour "green")
 nil
@@ -92,7 +92,10 @@ nil
 
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore
 et dolore magna aliqua. 
-
+        
+```klipse
+(+ 1 2)
+```
 ## Chapter 2
 
 Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
@@ -106,7 +109,7 @@ culpa qui officia deserunt mollit anim id est laborum.
     
 <h2> First shape </h2>
 Let's draw a shape
-<pre ><code class="language-klipse" data-preamble="(do (reset! canvas &#34;canvas--regular-n-gon&#34;) (init))" data-loop-msec="200">
+<pre ><code class="klipse" data-preamble="(do (reset! canvas &#34;canvas--regular-n-gon&#34;) (init))" data-loop-msec="200">
 (play)
 </code></pre>
 
@@ -119,7 +122,7 @@ Let's draw a shape
 
 <script>
     window.klipse_settings = {
-        selector: '.lang-language-klipse'// css selector for the html elements you want to klipsify
+        selector: '.lang-klipse'// css selector for the html elements you want to klipsify
     };
 </script>
 <script src="https://storage.googleapis.com/app.klipse.tech/plugin/js/klipse_plugin.js"></script>
