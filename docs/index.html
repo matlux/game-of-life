@@ -33,10 +33,10 @@ culpa qui officia deserunt mollit anim id est laborum.
 
 <pre ><code class="klipse"
 data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-host-clojurescript/src">
-(require '[game-of-life.core :refer [move arena test-board parse-block column-nb raw-nb c2dto1d size scale]])
+(require '[game-of-life.core :refer [move arena test-board column-nb raw-nb c2dto1d size scale]])
 </code></pre>
 
-<pre >
+<pre class="hidden">
 <code class="klipse" >
 (def canvas (atom nil))
 (def colour (atom "green"))
@@ -74,6 +74,17 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 
 
 <pre ><code class="klipse" >
+(defn parse-block [board block-coords]
+  (let [i (get block-coords 4)
+        ncount (neighbour-count (coords2state board block-coords))]
+    (if (is-alive? board i)
+      (cond
+       (< ncount 2) :.
+       (or (= ncount 2) (= ncount 3)) :X
+       (> ncount 3) :.)
+      (if (= ncount 3)
+        :X
+        :. ))))
 
 (defn apply-rules [board]
   (mapv (fn [i]
@@ -98,12 +109,7 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 </code></pre>
 
 
-<pre >
-<code class="klipse" data-eval-idle-msec="10000">
 
-;(reset! colour "green")
-nil
-</code></pre>
 
 
 # Markdown text goes in here
@@ -125,7 +131,12 @@ cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non pr
 culpa qui officia deserunt mollit anim id est laborum.
 
 
+<pre >
+<code class="klipse" data-eval-idle-msec="10000">
 
+;(reset! colour "green")
+nil
+</code></pre>
     
     
 <h2> First shape </h2>
