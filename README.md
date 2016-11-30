@@ -8,6 +8,10 @@ It's implemented in 60 x 60 matrix and displays in multicolor using Quil.
 
     lein run
 
+
+![game of life animated image](https://raw.githubusercontent.com/matlux/game-of-life/master/docs/images/game-of-life.gif)
+
+
 ## License
 
 Copyright © 2014 Mathieu Gauthron
