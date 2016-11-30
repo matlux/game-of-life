@@ -389,24 +389,6 @@
         :X
         :. ))))
 
-#?(:cljs (defn rect [x1 y1 color]
-  (let [canvas (js/document.getElementById @canvas)
-        ctx (.getContext canvas "2d")
-        w (.-width canvas)
-        h (.-height canvas)]
-    ;(.clearRect ctx x1 y1 x2 y2)
-    ;(set! (.-fillStyle ctx) "dodgerblue")
-    (set! (.-fillStyle ctx) color)
-    (.fillRect ctx x1 y1 scale  scale)
-
-    ))
-)
-#?(:cljs (defn draw []
-               (doseq [x (range 0 size)
-                       y (range 0 size)]
-                      (when-let [hue (if (= (get @arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
-
-                                (rect (* x scale) (* y scale) (if hue "green" "dodgerblue"))))))
 
 (defn apply-rules [board]
   (mapv (fn [i]
