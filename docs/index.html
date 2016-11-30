@@ -1,1 +1,93 @@
-Helloworld
+<pre ><code class="language-klipse"
+data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-host-clojurescript/src">
+(require '[game-of-life.core :refer [move arena test-board parse-block column-nb raw-nb c2dto1d size scale]])
+</code></pre>
+
+<pre >
+<code class="language-klipse" >
+(def canvas (atom nil))
+(def colour (atom "green"))
+
+(defn init []
+  (let [canvas (js/document.getElementById @canvas)
+        ctx (.getContext canvas "2d")
+        w (.-width canvas)
+        h (.-height canvas)]
+    (.clearRect ctx 0 0 w h)
+    (set! (.-fillStyle ctx) "dodgerblue")
+    (.fillRect ctx 0 0 w h)
+    (set! (.-fillStyle ctx) "limegreen")
+    ))
+
+(defn rect [x1 y1 color]
+  (let [canvas (js/document.getElementById @canvas)
+        ctx (.getContext canvas "2d")
+        w (.-width canvas)
+        h (.-height canvas)]
+    (set! (.-fillStyle ctx) color)
+    (.fillRect ctx x1 y1 scale  10)
+
+    ))
+
+(defn draw [arena]
+               (doseq [x (range 0 size)
+                       y (range 0 size)]
+                      (when-let [hue (if (= (get arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
+
+                                (rect (* x 10) (* y 10) (if hue @colour "dodgerblue")))))
+</code></pre>
+
+
+
+
+<pre ><code class="language-klipse" >
+
+(defn apply-rules [board]
+  (mapv (fn [i]
+         (let [mov (partial move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
+                                                         (mov -1 0) i           (mov +1 0)
+                                                         (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
+       (range (* column-nb raw-nb))))
+
+(defn game-of-life-step [{:keys [board] :as state}]
+  ;;(display board)
+  (reset! arena board)
+  (let [new-board (apply-rules board)]
+    {:board new-board}))
+
+(def s (atom (iterate game-of-life-step {:board test-board})))
+
+(defn play []
+  (init)
+(swap! s rest)
+(draw @arena))
+
+</code></pre>
+
+
+<pre >
+<code class="language-klipse" data-eval-idle-msec="10000">
+
+;(reset! colour "green")
+nil
+</code></pre>
+
+<h2> First shape </h2>
+Let's draw a shape
+<pre ><code class="language-klipse" data-preamble="(do (reset! canvas &#34;canvas--regular-n-gon&#34;) (init))" data-loop-msec="200">
+(play)
+</code></pre>
+
+
+<canvas id="canvas--regular-n-gon" class="center" width="1000" height="700"></canvas>
+
+
+
+<link rel="stylesheet" type="text/css" href="https://storage.googleapis.com/app.klipse.tech/css/codemirror.css">
+
+<script>
+    window.klipse_settings = {
+        selector: '.language-klipse'// css selector for the html elements you want to klipsify
+    };
+</script>
+<script src="https://storage.googleapis.com/app.klipse.tech/plugin/js/klipse_plugin.js"></script>
