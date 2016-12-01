@@ -7,6 +7,10 @@ It's implemented in 60 x 60 matrix and displays in multicolor using Quil.
 ## How to run it locally
 
     lein run
+    
+## How to require the cellular automaton framework
+
+    (require '[zone.lambda.game.board :as b :refer [DEAD ALIVE]])
 
 ## Result
 
