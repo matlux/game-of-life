@@ -152,25 +152,15 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 (def ALIVE 'i)
 (def DEAD '.)
 
-(def initial-board
-  (into [] (map (fn [_] :.) (range (* b/column-nb b/raw-nb)))))
-
-;; Quil stuff
-(def arena (atom test-board))
-;;(reset! arena test-board)
 
 (defn move [i xd yd]
   (let [[x y] (c1dto2d i)]
     (c2dto1d [(+ x xd) (+ y yd)])))
 
-;;(move 0 0 0)
-
 (defn left [i] (move i -1 0))
 (defn right [i] (move i +1 0))
 (defn up [i] (move i 0 -1))
 (defn down [i] (move i 0 +1))
-
-
 
 (defn neighbour-cells [block]
   (concat (subvec (vec block) 0 4) (subvec (vec  block) 5 9)))
@@ -181,7 +171,6 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 
 (defn is-alive? [board i]
   (= (get board i) ALIVE))
-
 
 (defn coords2state [board coords]
   (map #(get board %) coords))
@@ -206,7 +195,6 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
         (range (* b/column-nb b/raw-nb))))
 
 (defn game-of-life-step [{:keys [board] :as state}]
-  ;;(display board)
   (reset! b/arena board)
   (let [new-board (apply-rules board)]
     {:board new-board}))
