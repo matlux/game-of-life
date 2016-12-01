@@ -48,8 +48,7 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
         h (.-height canvas)]
     (.clearRect ctx 0 0 w h)
     (set! (.-fillStyle ctx) "black")
-    (.fillRect ctx 0 0 w h)
-    ))
+    (.fillRect ctx 0 0 w h)))
 
 (defn rect [x1 y1 color]
   (let [canvas (js/document.getElementById @canvas)
@@ -57,15 +56,12 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
         w (.-width canvas)
         h (.-height canvas)]
     (set! (.-fillStyle ctx) color)
-    (.fillRect ctx x1 y1 10  10)
-
-    ))
+    (.fillRect ctx x1 y1 10  10)))
 
 (defn draw [arena]
                (doseq [x (range 0 b/size)
                        y (range 0 b/size)]
                       (when-let [hue (if (= (get arena (b/c2dto1d b/size [x y])) :X) (+ 30 (int (rand 75))))]
-
                                 (rect (* x 10) (* y 10) (if hue @colour "black")))))
 </code></pre>
 
@@ -268,7 +264,7 @@ Let's draw a shape
     window.klipse_settings = {
         selector: '.klipse',
         codemirror_options_in: {
-            lineWrapping: true,
+            lineWrapping: false,
             autoCloseBrackets: true
         }
     }
