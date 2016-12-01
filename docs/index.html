@@ -58,14 +58,14 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
         w (.-width canvas)
         h (.-height canvas)]
     (set! (.-fillStyle ctx) color)
-    (.fillRect ctx x1 y1 scale  10)
+    (.fillRect ctx x1 y1 10  10)
 
     ))
 
 (defn draw [arena]
-               (doseq [x (range 0 size)
-                       y (range 0 size)]
-                      (when-let [hue (if (= (get arena (c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
+               (doseq [x (range 0 b/size)
+                       y (range 0 b/size)]
+                      (when-let [hue (if (= (get arena (b/c2dto1d [x y])) :X) (+ 30 (int (rand 75))))]
 
                                 (rect (* x 10) (* y 10) (if hue @colour "dodgerblue")))))
 </code></pre>
