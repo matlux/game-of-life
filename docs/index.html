@@ -33,7 +33,7 @@ culpa qui officia deserunt mollit anim id est laborum.
 
 <pre ><code class="klipse"
 data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-host-clojurescript/src">
-(require '[zone.lambda.game.board :as b])
+(require '[zone.lambda.game.board :as b :refer [DEAD ALIVE]])
 </code></pre>
 
 <pre class="hidden">
@@ -136,22 +136,7 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 
 
     ])
-    
-(def c2dto1d (partial b/c2dto1d b/column-nb))
-(def c1dto2d (partial b/c1dto2d b/column-nb))
 
-(def display (partial b/display-board-no-border b/raw-nb b/column-nb))
-
-(def ALIVE 'i)
-(def DEAD '.)
-
-(defn move [i xd yd]
-  (let [[x y] (c1dto2d i)]
-    (c2dto1d [(+ x xd) (+ y yd)])))
-(defn left [i] (move i -1 0))
-(defn right [i] (move i +1 0))
-(defn up [i] (move i 0 -1))
-(defn down [i] (move i 0 +1))
 (defn neighbour-cells [block]
   (concat (subvec (vec block) 0 4) (subvec (vec  block) 5 9)))
 (defn neighbour-count [block]
