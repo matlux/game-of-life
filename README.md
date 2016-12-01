@@ -69,6 +69,9 @@ modify the code and re-run `lein run`
 
 [or use Klipse for an interactive session :)](http://matlux.github.io/game-of-life)
 
+## Reference
+[Klipse library](https://github.com/viebel/klipse)
+
 ## License
 
 Copyright © 2016 Mathieu Gauthron
