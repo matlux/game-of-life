@@ -47,9 +47,8 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
         w (.-width canvas)
         h (.-height canvas)]
     (.clearRect ctx 0 0 w h)
-    (set! (.-fillStyle ctx) "dodgerblue")
+    (set! (.-fillStyle ctx) "black")
     (.fillRect ctx 0 0 w h)
-    (set! (.-fillStyle ctx) "limegreen")
     ))
 
 (defn rect [x1 y1 color]
