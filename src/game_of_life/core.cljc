@@ -4,11 +4,6 @@
             [zone.lambda.game.board :as b :refer [DEAD ALIVE]])
   ))
 
-(def c2dto1d (partial b/c2dto1d b/column-nb))
-(def c1dto2d (partial b/c1dto2d b/column-nb))
-
-(def display (partial b/display-board-no-border b/raw-nb b/column-nb))
-
 ;; board logic
 (def test-board
   '[
