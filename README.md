@@ -1,8 +1,10 @@
 # game-of-life
 
+![this project](https://raw.githubusercontent.com/matlux/game-of-life/master/docs/images/qrcode.37839690.png)
+
 A Clojure implementation of the famous Conway's game of life.
 
-It's implemented in 60 x 60 matrix and displays in multicolor using Quil. ![this project](https://raw.githubusercontent.com/matlux/game-of-life/master/docs/images/qrcode.37839690.png)
+It's implemented in 60 x 60 matrix and displays in multicolor using Quil. 
 
 ## How to run it locally
 
