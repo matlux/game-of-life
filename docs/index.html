@@ -160,7 +160,7 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 
 (defn apply-rules [board]
   (mapv (fn [i]
-          (let [mov (partial move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
+          (let [mov (partial b/move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
                                                           (mov -1 0) i           (mov +1 0)
                                                           (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
         (range (* b/column-nb b/raw-nb))))
@@ -184,15 +184,10 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 
 
 <pre >
-<code class="klipse" data-eval-idle-msec="10000">
-
-;(reset! colour "green")
-nil
+<code class="klipse" data-eval-idle-msec="1000">
+(reset! colour "green")
 </code></pre>
     
-    
-<h2> First shape </h2>
-Let's draw a shape
 <pre ><code class="klipse" data-preamble="(do (reset! canvas &#34;canvas--regular-n-gon&#34;) (init))" data-loop-msec="200">
 (play)
 </code></pre>
