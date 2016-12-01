@@ -24,17 +24,16 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
 et dolore magna aliqua. 
         
 
-<h2> Chapter 2</h2>
+<h2> How to use the framework?</h2>
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+require the following to load the framework:
 
 <pre ><code class="klipse"
 data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-host-clojurescript/src">
 (require '[zone.lambda.game.board :as b :refer [DEAD ALIVE]])
 </code></pre>
+    
+
 
 <pre class="hidden">
 <code class="klipse" >
@@ -66,11 +65,49 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
 </code></pre>
 
 
-
+Let's define the rules of the game:
 
 <pre ><code class="klipse" >
 
-;; board logic
+
+(defn neighbour-cells [block]
+  (concat (subvec (vec block) 0 4) (subvec (vec  block) 5 9)))
+(defn neighbour-count [block]
+  (count (filter #(= % ALIVE) (neighbour-cells block))))
+(defn is-alive? [board i]
+  (= (get board i) ALIVE))
+(defn coords2state [board coords]
+  (map #(get board %) coords))
+
+(defn parse-block [board block-coords]
+  (let [i (get block-coords 4)
+        ncount (neighbour-count (coords2state board block-coords))]
+    (if (is-alive? board i)
+      (cond
+        (< ncount 2) DEAD
+        (or (= ncount 2) (= ncount 3)) ALIVE
+        (> ncount 3) DEAD)
+      (if (= ncount 3)
+        ALIVE
+        DEAD))))
+
+(defn apply-rules [board]
+  (mapv (fn [i]
+          (let [mov (partial b/move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
+                                                          (mov -1 0) i           (mov +1 0)
+                                                          (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
+        (range (* b/column-nb b/raw-nb))))
+
+(defn game-of-life-step [{:keys [board] :as state}]
+  (reset! b/arena board)
+  (let [new-board (apply-rules board)]
+    {:board new-board}))
+</code></pre>
+
+
+Here is our data:
+
+<pre ><code class="klipse" >
 (def test-board
   '[
     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
@@ -133,42 +170,8 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
     . . i . . . i . i . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . . i . . . i . i . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
     . . i . . . . i . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
-
-
     ])
 
-(defn neighbour-cells [block]
-  (concat (subvec (vec block) 0 4) (subvec (vec  block) 5 9)))
-(defn neighbour-count [block]
-  (count (filter #(= % ALIVE) (neighbour-cells block))))
-(defn is-alive? [board i]
-  (= (get board i) ALIVE))
-(defn coords2state [board coords]
-  (map #(get board %) coords))
-
-(defn parse-block [board block-coords]
-  (let [i (get block-coords 4)
-        ncount (neighbour-count (coords2state board block-coords))]
-    (if (is-alive? board i)
-      (cond
-        (< ncount 2) DEAD
-        (or (= ncount 2) (= ncount 3)) ALIVE
-        (> ncount 3) DEAD)
-      (if (= ncount 3)
-        ALIVE
-        DEAD))))
-
-(defn apply-rules [board]
-  (mapv (fn [i]
-          (let [mov (partial b/move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
-                                                          (mov -1 0) i           (mov +1 0)
-                                                          (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
-        (range (* b/column-nb b/raw-nb))))
-
-(defn game-of-life-step [{:keys [board] :as state}]
-  (reset! b/arena board)
-  (let [new-board (apply-rules board)]
-    {:board new-board}))
 
 (def seq-of-game (iterate game-of-life-step {:board test-board}))
 
