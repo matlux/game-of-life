@@ -16,14 +16,25 @@
 (def size "size of the square arena" column-nb)
 (def scale 10)
 
-(def BLANK :.)
-
 (defn c2dto1d [column-nb v]
   (let [[x y] v]
     (+ x (* column-nb y))))
 
 (defn c1dto2d [column-nb i]
   (vector (mod i column-nb) (int (/ i column-nb))))
+
+(def ALIVE 'i)
+(def DEAD '.)
+
+(defn move [i xd yd]
+  (let [[x y] (c1dto2d column-nb i)]
+    (c2dto1d column-nb [(+ x xd) (+ y yd)])))
+(defn left [i] (move i -1 0))
+(defn right [i] (move i +1 0))
+(defn up [i] (move i 0 -1))
+(defn down [i] (move i 0 +1))
+
+
 (defn file-component [file]
   ;{:post [(and (< % 8) (>= % 0))]}
   (- (int file) (int *file-key*)))
@@ -128,7 +139,7 @@
 (defn board2xy-map-piece [raw-nb column-nb pieces-list]
   (into {}
         (filter
-          #(not= BLANK (second %))
+          #(not= DEAD (second %))
           (map
             #(vector (c1dto2d column-nb %1) %2 )
             (range (* column-nb raw-nb))
@@ -158,7 +169,7 @@
     (is-white? (lookup column-nb board (coord2pos column-nb coord)))
     ))
 
-(defn collid? [column-nb board pos] (not (= (lookup-xy column-nb board pos) :.)))
+(defn collid? [column-nb board pos] (not (= (lookup-xy column-nb board pos) DEAD)))
 
 (defn generate-line [n]
   (apply str "+" (repeat n "---+")))
@@ -265,7 +276,7 @@
        (dosync
          (doseq [x (range 0 size)
                  y (range 0 size)]
-           (when-let [hue (if (= (get @arena (c2dto1d size [x y])) :X) (+ 30 (int (rand 75))))]
+           (when-let [hue (if (= (get @arena (c2dto1d size [x y])) ALIVE) (+ 30 (int (rand 75))))]
              (q/fill (q/color hue 255 255))
              (q/rect (* scale x) (* scale y) scale scale)))))
 
