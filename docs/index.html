@@ -67,7 +67,7 @@ data-external-libs="https://raw.githubusercontent.com/matlux/game-of-life/self-h
                        y (range 0 b/size)]
                       (when-let [hue (if (= (get arena (b/c2dto1d b/size [x y])) :X) (+ 30 (int (rand 75))))]
 
-                                (rect (* x 10) (* y 10) (if hue @colour "dodgerblue")))))
+                                (rect (* x 10) (* y 10) (if hue @colour "black")))))
 </code></pre>
 
 
@@ -260,7 +260,7 @@ Let's draw a shape
 </code></pre>
 
 
-<canvas id="canvas--regular-n-gon" class="center" width="1000" height="700"></canvas>
+<canvas id="canvas--regular-n-gon" class="center" width="610" height="610"></canvas>
 
 
 <link rel="stylesheet" type="text/css" href="https://storage.googleapis.com/app.klipse.tech/css/codemirror.css">
