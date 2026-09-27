@@ -127,7 +127,9 @@ The editable default expression is **generated from** `rules.cljc` during the bu
 
 **Do not delete `self-host-clojurescript` yet:** the legacy `docs/index.html` still loads its framework from that branch. Retain it until the first successful deployment of the replacement has been verified.
 
-GitHub Pages publishes the **contents** of `target/site/` (including `.nojekyll`) at <https://matlux.github.io/game-of-life/> after a successful `master` workflow run. The repository's Pages source must be **GitHub Actions**, rather than `master:/docs`. Merging this PR will publish the replacement once CI succeeds. All runtime URLs are relative; a static directory behind infra1's reverse proxy or a suitable matlux.net path can also serve the same artifact. See [MIGRATION.md](MIGRATION.md) for rollout and rollback instructions.
+GitHub Pages publishes the **contents** of `target/site/` (including `.nojekyll`) after a successful `master` workflow run. The branded address is <https://game-of-life.os.matlux.net/>; its DNS and HTTPS setup is described in [MIGRATION.md](MIGRATION.md). The repository's Pages source must be **GitHub Actions**, rather than `master:/docs`. Merging this PR will publish the replacement once CI succeeds. All runtime URLs are relative, supporting both the custom-domain root and the `/game-of-life/` prefix used in tests.
+
+The Matlux Hugo site can embed the playground in a separate-origin iframe with `sandbox="allow-scripts allow-same-origin"`. It loads on demand. The embedding page sends `{type: "matlux-life:measure"}` to the iframe's exact origin; the app responds to that parent origin with `{type: "matlux-life:height", height: ...}` and reports subsequent layout changes. The parent must check both `event.origin` and `event.source` before resizing. Only the layout height is sent, never the board or edited code. The full-screen app works independently of this optional handshake.
 
 ## License
 

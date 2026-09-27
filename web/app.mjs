@@ -238,6 +238,23 @@ el.rule.addEventListener("keydown", event => {
 });
 window.addEventListener("pagehide", () => { pause(); worker.close(); candidate?.close(); });
 
+// Optional iframe handshake: report layout size, never board or rule contents.
+// The parent validates the sender's origin and Window before resizing the frame.
+if (window.parent !== window) {
+  let parentOrigin;
+  const reportHeight = () => {
+    if (parentOrigin) window.parent.postMessage({ type: "matlux-life:height",
+      height: Math.ceil(document.querySelector("main").getBoundingClientRect().height) }, parentOrigin);
+  };
+  window.addEventListener("message", event => {
+    if (event.source !== window.parent || event.data?.type !== "matlux-life:measure") return;
+    if (!/^https?:\/\//.test(event.origin)) return;
+    parentOrigin = event.origin;
+    reportHeight();
+  });
+  new ResizeObserver(reportHeight).observe(document.querySelector("main"));
+}
+
 async function boot() {
   controls();
   try {
