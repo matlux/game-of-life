@@ -17,7 +17,7 @@ The existing `master` already contains the self-hosted branch. No additional mer
 - The compiler is bundled with the artifact. The uncompressed worker bundle is approximately 8 MB; configure compression on a host that supports it. No asset is loaded from a CDN or moving Git reference.
 - `:simple` optimization is intentional: self-hosted evaluation needs the compiler and runtime namespace names. Do not switch the worker to `:advanced` without a separate compatibility design.
 - The rule worker has no DOM and supports `cljs.core` without an external namespace loader. Worker termination provides recovery from accidental infinite loops, not a hardened sandbox for untrusted remote programs. A dedicated site origin is preferable if this playground is later integrated with authenticated applications.
-- Native Java access is enabled for Processing. Unused Quil export dependencies are excluded, including the old PDF and Bouncy Castle stack. This application supports the 2D renderer; reintroducing export/OpenGL features requires a separate dependency review.
+- Processing may print a native-access warning on recent JDKs. No global native-access JVM flag is imposed; select a recent JDK for both Leiningen and its subprocess as described in the README. Unused Quil export dependencies are excluded, including the old PDF and Bouncy Castle stack. This application supports the 2D renderer; reintroducing export/OpenGL features requires a separate dependency review.
 
 ## Review locally
 

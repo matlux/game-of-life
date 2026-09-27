@@ -9,7 +9,7 @@ The browser build includes its own pinned ClojureScript compiler. It does not do
 
 ## Requirements
 
-- Java **21 or 25** (LTS targets in CI). Local smoke tests were also run on Java 24.
+- Java **21 or 25** (LTS targets in CI). Local tests and desktop smoke tests were also run on Java 23 and 24.
 - Leiningen **2.11+** (CI uses 2.12.0).
 - Node.js **22+** and npm for browser tests and the preview server. Node is not needed by the deployed site.
 
@@ -17,11 +17,32 @@ Pinned runtime versions: Clojure **1.12.6**, Quil **4.3.1563**, ClojureScript **
 
 ## Run the desktop application
 
+Make sure Leiningen uses a recent JDK. Java 8 cannot run the upgraded dependencies.
+On macOS, list installed JDKs with `/usr/libexec/java_home -V`, then select one
+for the current terminal (replace `21` with your installed version):
+
+```sh
+export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
+export JAVA_CMD="$JAVA_HOME/bin/java"
+export LEIN_JAVA_CMD="$JAVA_CMD"
+lein version
+```
+
+Set all three variables because Leiningen itself and its application subprocess
+can otherwise select different Java installations. `lein version` should report
+the selected Java version. These exports affect only the current terminal.
+
 ```sh
 lein run
 ```
 
 Space pauses/resumes, **N** advances one generation and pauses, and **R** restores the original seed. Closing the window exits the application. The simulation advances at 10 generations per second while playing and retains only the current board.
+
+Recent JDKs may print a native-access warning from Processing when opening the
+desktop window. The project does not add a global native-access flag; it is not
+needed to run on the tested JDKs. If startup reports
+`Unrecognized option: --enable-native-access=ALL-UNNAMED`, update this branch and
+select a recent JDK as above.
 
 ## Run the browser playground locally
 
