@@ -41,19 +41,19 @@ test("loads without external runtime requests and supports play, pause, step, re
 
 test("edits real ClojureScript; failed edits preserve the last rule; Conway can be restored", async ({ page }) => {
   await apply(page, "(fn [_ _] false)");
-  await expect(page.getByRole("status")).toContainText("Rule applied");
+  await expect(page.locator("#status")).toContainText("Rule applied");
   await page.getByRole("button", { name: "Step", exact: true }).click();
   await expect(page.locator("#population")).toHaveText("0");
   await page.getByRole("button", { name: "Reset board", exact: true }).click();
   await expect(page.locator("#population")).toHaveText("97");
   await apply(page, "(fn [");
-  await expect(page.getByRole("status")).toContainText("Previous rule and board preserved");
+  await expect(page.locator("#status")).toContainText("Previous rule and board preserved");
   await expect(page.locator("#generation")).toHaveText("0");
   await expect(page.locator("#population")).toHaveText("97");
   await page.getByRole("button", { name: "Step", exact: true }).click();
   await expect(page.locator("#population")).toHaveText("0");
   await page.getByRole("button", { name: "Restore Conway", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Conway’s rules restored");
+  await expect(page.locator("#status")).toContainText("Conway’s rules restored");
   await page.getByRole("button", { name: "Reset board", exact: true }).click();
   await expect(page.locator("#generation")).toHaveText("0");
   await page.getByRole("button", { name: "Step", exact: true }).click();
@@ -62,7 +62,7 @@ test("edits real ClojureScript; failed edits preserve the last rule; Conway can 
 
 test("runaway evaluation times out without blocking the page", async ({ page }) => {
   await apply(page, "(loop [] (recur))");
-  await expect(page.getByRole("status")).toContainText("took too long");
+  await expect(page.locator("#status")).toContainText("took too long");
   await expect(page.locator("#generation")).toHaveText("0");
   await page.getByRole("button", { name: "Step", exact: true }).click();
   await expect(page.locator("#generation")).toHaveText("1");
@@ -70,21 +70,21 @@ test("runaway evaluation times out without blocking the page", async ({ page }) 
 
 test("Restore Conway can cancel an in-flight evaluation", async ({ page }) => {
   await apply(page, "(loop [] (recur))");
-  await expect(page.getByRole("status")).toContainText("Compiling");
+  await expect(page.locator("#status")).toContainText("Compiling");
   await page.getByRole("button", { name: "Restore Conway", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Conway’s rules restored");
+  await expect(page.locator("#status")).toContainText("Conway’s rules restored");
   await page.getByRole("button", { name: "Step", exact: true }).click();
   await expect(page.locator("#population")).toHaveText("105");
 });
 
 test("a runaway generation stops and can recover on the same board", async ({ page }) => {
   await apply(page, "(let [calls (atom 0)] (fn [_ _] (if (> (swap! calls inc) 18) (loop [] (recur)) false)))");
-  await expect(page.getByRole("status")).toContainText("Rule applied");
+  await expect(page.locator("#status")).toContainText("Rule applied");
   await page.getByRole("button", { name: "Step", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("took too long");
+  await expect(page.locator("#status")).toContainText("took too long");
   await expect(page.locator("#generation")).toHaveText("0");
   await page.getByRole("button", { name: "Restore Conway", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("Conway’s rules restored");
+  await expect(page.locator("#status")).toContainText("Conway’s rules restored");
   await page.getByRole("button", { name: "Step", exact: true }).click();
   await expect(page.locator("#population")).toHaveText("105");
 });
