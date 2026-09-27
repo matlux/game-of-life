@@ -17,6 +17,7 @@ test("loads without external runtime requests and supports play, pause, step, re
   });
   await page.reload();
   await expect(page.locator("#population")).toHaveText("97");
+  await page.screenshot({ path: "test-results/desktop-preview.png", fullPage: true });
   await page.getByRole("button", { name: "Step", exact: true }).click();
   await expect(page.locator("#generation")).toHaveText("1");
   await expect(page.locator("#population")).toHaveText("105");
@@ -93,4 +94,5 @@ test("the page fits a mobile viewport", async ({ page }) => {
   const fits = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
   expect(fits).toBe(true);
   await expect(page.getByLabel("ClojureScript rule", { exact: true })).toBeVisible();
+  await page.screenshot({ path: "test-results/mobile-preview.png", fullPage: true });
 });
