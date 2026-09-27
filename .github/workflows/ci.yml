@@ -1,0 +1,97 @@
+name: Test and deploy Game of Life
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Cancel superseded PR checks, but let a master deployment finish safely.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  jvm:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: ['21', '25']
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: project.clj
+      - uses: DeLaGuardo/setup-clojure@13.7.0
+        with:
+          lein: 2.12.0
+      - run: lein test
+      - name: Render the desktop application
+        run: timeout 60s xvfb-run -a lein desktop-smoke
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: project.clj
+      - uses: DeLaGuardo/setup-clojure@13.7.0
+        with:
+          lein: 2.12.0
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: lein web-build
+      - run: lein cljs-test-build
+      - run: node target/cljs-tests.js
+      - run: npm run test:workers
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - uses: actions/upload-artifact@v7.0.1
+        if: always()
+        with:
+          name: playground-previews
+          path: test-results/*-preview.png
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: game-of-life-site
+          path: target/site/
+          include-hidden-files: true
+      - name: Package the tested site for GitHub Pages
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: target/site/
+          include-hidden-files: true
+      - uses: actions/upload-artifact@v7.0.1
+        if: failure()
+        with:
+          name: browser-failure-traces
+          path: test-results/
+  deploy:
+    name: Deploy GitHub Pages
+    needs: [jvm, browser]
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6.0.0
+      - name: Publish the tested site
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1

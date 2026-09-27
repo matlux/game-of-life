@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game of Life · A ClojureScript playground</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">A living experiment</p>
+      <h1>Game of Life<span>.</span></h1>
+      <p class="intro">Small rules. Unexpected worlds. Change the ClojureScript, then watch your rules come to life.</p>
+    </header>
+    <div class="workspace">
+      <section class="simulation" aria-label="Simulation">
+        <div class="readout"><span>Generation <strong id="generation">0</strong></span><span>Alive <strong id="population">0</strong></span></div>
+        <canvas id="board" width="600" height="600" tabindex="0" aria-label="Game of Life board" aria-describedby="board-help">Your browser needs canvas support to display the simulation.</canvas>
+        <p id="board-help" class="hint">Click or tap a cell to toggle it, even while playing. Keyboard: focus the board, use arrow keys to choose a cell, then Enter or Space to toggle.</p>
+        <div class="controls">
+          <button id="toggle" disabled>Play</button>
+          <button id="step" disabled>Step</button>
+          <button id="reset" disabled>Reset board</button>
+          <label>Speed <input id="speed" type="range" min="1" max="20" value="5"><output id="speed-value">5 / sec</output></label>
+        </div>
+        <div class="settings">
+          <label>Pattern <select id="pattern" disabled></select></label>
+          <label>Edges <select id="boundary"><option value="dead">Dead edges</option><option value="wrap">Wrap around</option></select></label>
+          <label>Colour <input id="colour" type="color" value="#8fda9a"></label>
+        </div>
+        <p id="pattern-description" class="hint"></p>
+        <p class="hint">Pattern descriptions assume Conway’s rules. Edges and your edits can change their evolution. Reset board restores the selected seed.</p>
+      </section>
+      <section class="editor" aria-labelledby="rule-heading">
+        <div class="editor-heading"><h2 id="rule-heading">Write the next generation</h2><span id="rule-name">Conway’s rules</span></div>
+        <p>For each cell, this function receives <code>alive?</code> and its number of live <code>neighbours</code>. Return <code>true</code> to keep it alive, or <code>false</code> to let it die.</p>
+        <label class="sr-only" for="rule">ClojureScript rule</label>
+        <textarea id="rule" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="rule-help" disabled></textarea>
+        <div class="controls"><button id="apply" disabled>Apply rule</button><button id="restore">Restore Conway</button></div>
+        <p id="rule-help" class="hint">Try <code>(fn [alive? neighbours] alive?)</code> to freeze the board. You can define helpers inside a <code>let</code> or <code>do</code> expression. Ctrl/⌘ + Enter applies your code.</p>
+        <p id="status" role="status" aria-live="polite">Loading ClojureScript…</p>
+        <details><summary>How it works</summary><p>Real ClojureScript compiles and runs in your browser. Applying a rule pauses the simulation; press Play when you’re ready. Invalid code leaves the previous rule in place. Slow or looping code is stopped in a worker so the page stays responsive.</p><p>The playground includes <code>cljs.core</code>. Additional library imports and DOM access are not available in the rule worker. The default engine and patterns are shared with the JVM desktop application.</p></details>
+      </section>
+    </div>
+    <footer><span>Conway’s Game of Life · Clojure + ClojureScript</span><a href="https://github.com/matlux/game-of-life">Source on GitHub ↗</a></footer>
+  </main>
+</body>
+</html>
