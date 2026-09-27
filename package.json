@@ -1,0 +1,18 @@
+{
+  "name": "game-of-life",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser regression tests for the ClojureScript playground",
+  "license": "EPL-1.0",
+  "scripts": {
+    "test": "npm run test:workers && npm run test:browser",
+    "test:workers": "node --test test/web/worker.test.mjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,80 +1,109 @@
-# game-of-life
+# Game of Life
 
-![this project](https://raw.githubusercontent.com/matlux/game-of-life/master/docs/images/qrcode.37839690.png)
+One Clojure/ClojureScript engine, two ways to play:
 
-A Clojure implementation of the famous Conway's game of life.
+- **JVM desktop:** a Quil window with the original 60 × 60 seed.
+- **Browser playground:** edit and compile real ClojureScript rules, then run them on a canvas. All execution happens in your browser; no application server is required.
 
-It's implemented in 60 x 60 matrix and displays in multicolor using Quil. 
+The browser build includes its own pinned ClojureScript compiler. It does not download code from a Git branch or a third-party CDN.
 
-## How to run it locally
+## Requirements
 
-    lein run
-    
-## How to require the cellular automaton framework
+- Java **21 or 25** (LTS targets in CI). Local smoke tests were also run on Java 24.
+- Leiningen **2.11+** (CI uses 2.12.0).
+- Node.js **22+** and npm for browser tests and the preview server. Node is not needed by the deployed site.
 
-    (require '[zone.lambda.game.board :as b :refer [DEAD ALIVE]])
+Pinned runtime versions: Clojure **1.12.6**, Quil **4.3.1563**, ClojureScript **1.12.145**. Quil is used only by the desktop renderer. Unused monads, numeric-tower, browser rendering, and PDF/SVG/DXF export dependencies have been removed or excluded.
 
-## Result
+## Run the desktop application
 
-![game of life animated image](https://raw.githubusercontent.com/matlux/game-of-life/master/docs/images/game-of-life.gif)
-
-## rules of the game
-
-```clojure
-(defn neighbour-cells [block]
-  (concat (subvec (vec block) 0 4) (subvec (vec  block) 5 9)))
-(defn neighbour-count [block]
-  (count (filter #(= % ALIVE) (neighbour-cells block))))
-(defn is-alive? [board i]
-  (= (get board i) ALIVE))
-(defn coords2state [board coords]
-  (map #(get board %) coords))
-
-(defn parse-block [board block-coords]
-  (let [i (get block-coords 4)
-        ncount (neighbour-count (coords2state board block-coords))]
-    (if (is-alive? board i)
-      (cond
-        (< ncount 2) DEAD
-        (or (= ncount 2) (= ncount 3)) ALIVE
-        (> ncount 3) DEAD)
-      (if (= ncount 3)
-        ALIVE
-        DEAD))))
-
-(defn apply-rules [board]
-  (mapv (fn [i]
-          (let [mov (partial b/move i)] (parse-block board [(mov -1 -1) (mov 0 -1) (mov +1 -1)
-                                                            (mov -1 0) i           (mov +1 0)
-                                                            (mov -1 +1) (mov 0 +1) (mov +1 +1)])))
-        (range (* b/column-nb b/raw-nb))))
-
-(defn game-of-life-step [{:keys [board] :as state}]
-  (reset! b/arena board)
-  (let [new-board (apply-rules board)]
-    {:board new-board}))
+```sh
+lein run
 ```
 
-## if you want to modify the colour
+Space pauses/resumes, **N** advances one generation and pauses, and **R** restores the original seed. Closing the window exits the application. The simulation advances at 10 generations per second while playing and retains only the current board.
 
-modify the code and re-run `lein run`
+## Run the browser playground locally
 
-## if you want to modify the initial state
+```sh
+lein web-build
+node test/web/serve.mjs
+```
 
-modify the code and re-run `lein run`
+Open <http://127.0.0.1:8766/game-of-life/>. The first build downloads the compiler and may take a minute. Subsequent builds reuse the compiler cache.
 
-## if you want to modify the rules
+The board starts paused. Use **Play**, **Pause**, **Step**, or **Reset board**. Choose the original seed, a glider, or a blinker; select dead edges or wraparound; change speed and colour independently of the rules.
 
-modify the code and re-run `lein run`
+The editor evaluates a ClojureScript expression whose result is a function:
 
-[or use Klipse for an interactive session :)](http://matlux.github.io/game-of-life)
+```clojure
+(fn [alive? neighbours]
+  (or (= neighbours 3)
+      (and alive? (= neighbours 2))))
+```
 
-## Reference
-[Klipse library](https://github.com/viebel/klipse)
+`alive?` is a boolean and `neighbours` is an integer from 0 to 8. The function must return `true` or `false`. For example, `(fn [alive? _] alive?)` freezes the cells; `(fn [_ _] false)` kills every cell.
+
+Click **Apply rule** or press Ctrl/⌘ + Enter. Applying pauses playback and preserves the current board. Syntax errors and invalid return values preserve the previous rule. Each edit compiles in a fresh worker, so a failed edit cannot redefine helpers used by the previous rule. **Restore Conway** cancels an in-progress edit or replaces a stopped runtime while preserving the last board. **Reset board** retains the active rule and loads the selected pattern.
+
+The evaluator includes `cljs.core`; helper definitions inside `let` or `do` are supported. Additional library imports and DOM access are not provided. Evaluation and stepping run in a disposable Web Worker with a three-second deadline. Workers protect page responsiveness; they are not a security sandbox for arbitrary third-party code. There is no server-side code execution or code sharing/persistence in this version.
+
+## Test
+
+```sh
+lein test
+lein desktop-smoke
+lein web-build
+lein cljs-test-build
+node target/cljs-tests.js
+npm ci
+npm run test:workers
+npx playwright install chromium
+npm run test:browser
+```
+
+`desktop-smoke` needs a display. It opens a window, checks that at least five generations render, and closes it. Linux CI uses `xvfb-run`.
+
+The shared `.cljc` tests exercise Conway's truth table, stable/oscillating/moving patterns, rectangular boards, both boundary modes, state isolation and invalid inputs. Production-worker tests compare complete boards against JVM-generated fixtures for 20 generations in both edge modes. They also compile the canonical rule and edited functions and terminate runaway evaluation/stepping. Browser tests exercise the actual page, recovery controls, mobile layout, and operation under a `/game-of-life/` URL prefix.
+
+GitHub Actions runs JVM tests and desktop smoke tests on Java 21 and 25, plus ClojureScript, worker, and browser tests. A successful browser job uploads a `game-of-life-site` artifact. **CI does not deploy it.**
+
+## Source layout
+
+| Path | Responsibility |
+| --- | --- |
+| `src/game_of_life/engine.cljc` | Pure board construction, boundaries, neighbour counting and stepping |
+| `src/game_of_life/rules.cljc` | Canonical Conway rule |
+| `src/game_of_life/patterns.cljc` | Shared patterns, including the original seed |
+| `src/game_of_life/desktop.clj` | Quil rendering and desktop controls |
+| `src/game_of_life/evaluator.cljs` | Self-hosted compilation and rule validation |
+| `src/game_of_life/worker.cljs` | Browser worker protocol and simulation execution |
+| `web/` | Browser UI and disposable worker client |
+| `dev/game_of_life/build.clj` | Static build, editable rule extraction and JVM test fixtures |
+| `target/site/` | Generated, portable static site; ignored by Git |
+| `docs/` | Frozen legacy Klipse site, still used by the existing Pages deployment |
+
+The editable default expression is **generated from** `rules.cljc` during the build. It is not a second handwritten rule implementation. Only the engine and patterns are shared; neither DOM APIs nor Quil dependencies are needed to use the pure engine.
+
+```clojure
+(require '[game-of-life.engine :as life]
+         '[game-of-life.patterns :as patterns])
+
+(def state (life/new-state patterns/glider :wrap))
+(life/step state)
+(life/step state (fn [alive? _] alive?))
+```
+
+## Deployment and branch history
+
+`self-host-clojurescript` was merged into `master` in December 2016. The modernization starts from that existing merge. The old `experiment` and `parallel-experimental` branches remain historical experiments; their old source trees are not merged into the new engine.
+
+**Do not delete `self-host-clojurescript` yet:** the published legacy `docs/index.html` still loads its framework from that branch. The legacy pages are deliberately unchanged so reviewing or merging the source changes does not silently switch the public application.
+
+For the replacement, deploy the **contents** of `target/site/` (including `.nojekyll`) to a static host. All runtime URLs are relative, supporting both a project prefix and a dedicated hostname. GitHub Pages, a static directory behind infra1's reverse proxy, or a suitable matlux.net path can serve the same artifact. See [MIGRATION.md](MIGRATION.md) for the rollout checklist and review notes.
 
 ## License
 
-Copyright © 2016 Mathieu Gauthron
+Copyright © 2016 Mathieu Gauthron.
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Eclipse Public License either version 1.0 or (at your option) any later version. Third-party dependencies retain their own licenses.
