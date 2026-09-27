@@ -87,7 +87,7 @@ npm run test:browser
 
 The shared `.cljc` tests exercise Conway's truth table, stable/oscillating/moving patterns, rectangular boards, both boundary modes, state isolation and invalid inputs. Production-worker tests compare complete boards against JVM-generated fixtures for 20 generations in both edge modes. They also compile the canonical rule and edited functions and terminate runaway evaluation/stepping. Browser tests exercise the actual page, recovery controls, mobile layout, and operation under a `/game-of-life/` URL prefix.
 
-GitHub Actions runs JVM tests and desktop smoke tests on Java 21 and 25, plus ClojureScript, worker, and browser tests. A successful browser job uploads a `game-of-life-site` artifact. **CI does not deploy it.**
+GitHub Actions runs JVM tests and desktop smoke tests on Java 21 and 25, plus ClojureScript, worker, and browser tests. A successful browser job uploads a `game-of-life-site` artifact and packages that same build for GitHub Pages. After all checks pass on `master`, the deployment job publishes the new playground. Pull requests never deploy. You can also manually run the workflow on `master` to rebuild, test, and publish it.
 
 ## Source layout
 
@@ -102,7 +102,7 @@ GitHub Actions runs JVM tests and desktop smoke tests on Java 21 and 25, plus Cl
 | `web/` | Browser UI and disposable worker client |
 | `dev/game_of_life/build.clj` | Static build, editable rule extraction and JVM test fixtures |
 | `target/site/` | Generated, portable static site; ignored by Git |
-| `docs/` | Frozen legacy Klipse site, still used by the existing Pages deployment |
+| `docs/` | Frozen legacy Klipse site, retained during the Pages migration |
 
 The editable default expression is **generated from** `rules.cljc` during the build. It is not a second handwritten rule implementation. Only the engine and patterns are shared; neither DOM APIs nor Quil dependencies are needed to use the pure engine.
 
@@ -119,9 +119,9 @@ The editable default expression is **generated from** `rules.cljc` during the bu
 
 `self-host-clojurescript` was merged into `master` in December 2016. The modernization starts from that existing merge. The old `experiment` and `parallel-experimental` branches remain historical experiments; their old source trees are not merged into the new engine.
 
-**Do not delete `self-host-clojurescript` yet:** the published legacy `docs/index.html` still loads its framework from that branch. The legacy pages are deliberately unchanged so reviewing or merging the source changes does not silently switch the public application.
+**Do not delete `self-host-clojurescript` yet:** the legacy `docs/index.html` still loads its framework from that branch. Retain it until the first successful deployment of the replacement has been verified.
 
-For the replacement, deploy the **contents** of `target/site/` (including `.nojekyll`) to a static host. All runtime URLs are relative, supporting both a project prefix and a dedicated hostname. GitHub Pages, a static directory behind infra1's reverse proxy, or a suitable matlux.net path can serve the same artifact. See [MIGRATION.md](MIGRATION.md) for the rollout checklist and review notes.
+GitHub Pages publishes the **contents** of `target/site/` (including `.nojekyll`) at <https://matlux.github.io/game-of-life/> after a successful `master` workflow run. The repository's Pages source must be **GitHub Actions**, rather than `master:/docs`. Merging this PR will publish the replacement once CI succeeds. All runtime URLs are relative; a static directory behind infra1's reverse proxy or a suitable matlux.net path can also serve the same artifact. See [MIGRATION.md](MIGRATION.md) for rollout and rollback instructions.
 
 ## License
 

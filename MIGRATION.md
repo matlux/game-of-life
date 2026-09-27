@@ -4,7 +4,7 @@
 
 This branch consolidates the application around a pure `.cljc` engine, fixes cell boundaries and state retention, upgrades the JVM dependencies, and supplies a self-contained browser playground with a current self-hosted ClojureScript compiler.
 
-The existing `master` already contains the self-hosted branch. No additional merge from `self-host-clojurescript` is needed. The public Klipse page under `docs/` and the historical branches are retained until deployment migration is explicitly chosen.
+The existing `master` already contains the self-hosted branch. No additional merge from `self-host-clojurescript` is needed. The Klipse page under `docs/` and the historical branches are retained during the migration to the new GitHub Pages deployment.
 
 ## Intentional changes
 
@@ -31,17 +31,19 @@ The existing `master` already contains the self-hosted branch. No additional mer
 8. Apply `(loop [] (recur))`; after three seconds the page should report termination and remain usable. Restore Conway and continue.
 9. Run the documented ClojureScript, worker and browser suites; inspect CI results and the generated site artifact.
 
-## Deployment is deferred
+## GitHub Pages deployment
 
-Current GitHub Pages configuration serves `master:/docs`. This branch does not change that setting or add an automatic deployment job.
+The repository's Pages publishing source must be **GitHub Actions**. The workflow in `.github/workflows/ci.yml` replaces publication from `master:/docs` with the tested `target/site/` build. Changing the publishing source does not itself deploy this PR.
 
-When the replacement is approved:
+On a push to `master` (including a merge), or a manual workflow run on `master`:
 
-1. Choose GitHub Pages, infra1, or a matlux.net location. No server-side Clojure runtime is needed for the browser version.
-2. Deploy the already-tested `game-of-life-site` CI artifact to a preview location. Preserve the full artifact, including `default-rule.cljs` and `js/worker.js`.
-3. Verify HTTPS, relative paths, worker loading, code evaluation, errors, and recovery at the actual public URL. A restrictive Content Security Policy must allow the self-hosted evaluator's JavaScript evaluation within its worker.
-4. For GitHub Pages, explicitly switch the publishing source to GitHub Actions and add a reviewed deployment workflow. For infra1, serve the artifact as static files and enable compression. Avoid caching HTML indefinitely; use cache revalidation or versioned releases for the worker and default source.
-5. Keep a previous artifact for rollback; publish each complete release together so HTML, compiler, and rule source remain consistent.
-6. After the replacement is live, retire the legacy `docs/index.html`/`test.html` copies and remove their dependence on `self-host-clojurescript`. Only then consider deleting that branch.
+1. Run JVM tests and desktop smoke tests on Java 21 and 25.
+2. Build the browser site and run ClojureScript, worker, and browser tests under the `/game-of-life/` prefix.
+3. Package that exact site, preserving `default-rule.cljs`, `js/worker.js`, and `.nojekyll`.
+4. Deploy only after **both jobs succeed**. Only the deployment job receives Pages write and OIDC permissions. Pull requests package the artifact for validation but skip deployment. Master runs are serialized without cancelling an active deployment.
 
-Accounts, saving/sharing programs, arbitrary library imports, and multi-user execution are outside this change. Hosting and those product choices can be reviewed separately.
+After the first deployment, verify <https://matlux.github.io/game-of-life/>: step, apply an edited rule, try invalid code, and recover from a runaway rule. The public deployment cannot be exercised by a pull request; review its deployment result after merging. Only after this check should the legacy `docs/` copies and their dependence on `self-host-clojurescript` be retired.
+
+For rollback after a later release, revert the faulty application change on `master`; the workflow rebuilds, tests, and deploys the reverted version. To roll back this initial migration to the legacy site, disable the new workflow first (so it cannot overwrite the rollback), switch Pages back to **Deploy from a branch**, `master:/docs`, and trigger/verify the legacy Pages build. Keep the historical self-hosted branch available for that fallback.
+
+No server-side Clojure runtime is needed. Infra1 and matlux.net remain alternative static hosts for the same complete artifact; moving there can be reviewed separately. A restrictive Content Security Policy must allow the self-hosted evaluator's JavaScript evaluation within its worker. Accounts, saving/sharing programs, arbitrary library imports, and multi-user execution are outside this change.

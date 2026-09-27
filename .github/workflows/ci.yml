@@ -1,4 +1,4 @@
-name: Test both runtimes
+name: Test and deploy Game of Life
 
 on:
   push:
@@ -11,7 +11,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel superseded PR checks, but let a master deployment finish safely.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   jvm:
@@ -67,8 +68,30 @@ jobs:
           name: game-of-life-site
           path: target/site/
           include-hidden-files: true
+      - name: Package the tested site for GitHub Pages
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          path: target/site/
+          include-hidden-files: true
       - uses: actions/upload-artifact@v7.0.1
         if: failure()
         with:
           name: browser-failure-traces
           path: test-results/
+  deploy:
+    name: Deploy GitHub Pages
+    needs: [jvm, browser]
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6.0.0
+      - name: Publish the tested site
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1
