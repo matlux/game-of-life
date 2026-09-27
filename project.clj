@@ -14,5 +14,10 @@
                                org.apache.xmlgraphics/batik-svggen]]]
   :main game-of-life.core
   :jvm-opts ["--enable-native-access=ALL-UNNAMED"]
-  :profiles {:smoke {:source-paths ["dev"]}}
-  :aliases {"desktop-smoke" ["with-profile" "+smoke" "run" "-m" "game-of-life.desktop-smoke"]})
+  :profiles {:smoke {:source-paths ["dev"]}
+             :web {:dependencies [[org.clojure/clojurescript "1.12.145"]
+                                 [org.clojure/data.json "2.5.1"]]
+                   :source-paths ["dev"]}}
+  :aliases {"desktop-smoke" ["with-profile" "+smoke" "run" "-m" "game-of-life.desktop-smoke"]
+            "web-build" ["with-profile" "+web" "run" "-m" "game-of-life.build" "site"]
+            "cljs-test-build" ["with-profile" "+web" "run" "-m" "game-of-life.build" "test"]})
