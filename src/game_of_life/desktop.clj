@@ -31,10 +31,15 @@
     (q/fill (+ 30 (mod i 75)) 255 255)
     (q/rect (* cell-size (mod i width)) (* cell-size (quot i width)) cell-size cell-size)))
 
-(defn launch! []
-  (q/sketch :title "Game of Life — Space: pause · N: step · R: reset"
-            :size [(* cell-size (:width patterns/original))
-                   (* cell-size (:height patterns/original))]
-            :setup setup :update update-state :draw draw :key-pressed key-pressed
-            :middleware [middleware/fun-mode]
-            :features [:exit-on-close]))
+(defn launch!
+  ([] (launch! {}))
+  ([options]
+   (apply q/sketch
+          (mapcat identity
+                  (merge {:title "Game of Life — Space: pause · N: step · R: reset"
+                          :size [(* cell-size (:width patterns/original))
+                                 (* cell-size (:height patterns/original))]
+                          :setup setup :update update-state :draw draw :key-pressed key-pressed
+                          :middleware [middleware/fun-mode]
+                          :features [:exit-on-close]}
+                         options)))))
