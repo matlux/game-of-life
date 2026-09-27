@@ -10,6 +10,9 @@ h1 span { color: #8fda9a; }
 .readout { display: flex; justify-content: space-between; font-size: .85rem; color: #a2b2a7; margin-bottom: 12px; }
 strong { font-variant-numeric: tabular-nums; color: #e9ece7; font-weight: 500; margin-left: 8px; }
 canvas { display: block; width: 100%; height: auto; background: #0c100e; border: 1px solid #334039; border-radius: 8px; }
+canvas { cursor: crosshair; touch-action: manipulation; }
+canvas:focus-visible { outline: 2px solid #b8e8bf; outline-offset: 3px; }
+.simulation .hint { color: #a2b2a7; font-size: .8rem; line-height: 1.6; }
 .controls, .settings { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
 button, select, input { font: inherit; }
 button { border: 1px solid #45534a; color: #e9ece7; background: #232c26; padding: 10px 14px; border-radius: 6px; cursor: pointer; }

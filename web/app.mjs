@@ -1,6 +1,6 @@
 import { LifeWorker } from "./worker-client.mjs";
 
-const el = Object.fromEntries(["board", "generation", "population", "toggle", "step", "reset", "speed", "speed-value", "pattern", "boundary", "colour", "rule", "apply", "restore", "status", "rule-name"].map(id => [id, document.getElementById(id)]));
+const el = Object.fromEntries(["board", "generation", "population", "toggle", "step", "reset", "speed", "speed-value", "pattern", "pattern-description", "boundary", "colour", "rule", "apply", "restore", "status", "rule-name"].map(id => [id, document.getElementById(id)]));
 const workerURL = new URL("./js/worker.js", import.meta.url);
 const context = el.board.getContext("2d");
 let worker = new LifeWorker(workerURL);
@@ -12,6 +12,8 @@ let busy = true;
 let stepping = false;
 let epoch = 0;
 let timer;
+let catalog = [];
+let selectedCell = [30, 30];
 
 function status(message, error = false) {
   el.status.textContent = message;
@@ -28,6 +30,7 @@ function controls() {
   el.restore.disabled = !defaultSource;
   el.pattern.disabled = busy || !state || worker.closed;
   el.boundary.disabled = busy || !state || worker.closed;
+  el.board.setAttribute("aria-disabled", String(busy || !state));
 }
 
 function draw() {
@@ -40,10 +43,65 @@ function draw() {
   state.board.forEach((alive, i) => {
     if (alive) context.fillRect((i % state.width) * cellWidth, Math.floor(i / state.width) * cellHeight, cellWidth, cellHeight);
   });
+  context.strokeStyle = "#243027";
+  context.lineWidth = 0.5;
+  context.beginPath();
+  for (let x = 1; x < state.width; x++) {
+    context.moveTo(x * cellWidth, 0); context.lineTo(x * cellWidth, el.board.height);
+  }
+  for (let y = 1; y < state.height; y++) {
+    context.moveTo(0, y * cellHeight); context.lineTo(el.board.width, y * cellHeight);
+  }
+  context.stroke();
+  const [x, y] = selectedCell;
+  if (document.activeElement === el.board) {
+    context.strokeStyle = "#ffffff";
+    context.lineWidth = 2;
+    context.strokeRect(x * cellWidth + 1, y * cellHeight + 1, cellWidth - 2, cellHeight - 2);
+  }
   el.generation.textContent = state.generation;
   el.population.textContent = state.board.filter(Boolean).length;
-  el.board.setAttribute("aria-label", `Game of Life board, generation ${state.generation}, ${el.population.textContent} live cells`);
+  el.board.setAttribute("aria-label", `Game of Life board, generation ${state.generation}, ${el.population.textContent} live cells. Selected cell ${x + 1}, ${y + 1}: ${state.board[y * state.width + x] ? "alive" : "dead"}`);
 }
+
+function toggleCell(x, y) {
+  if (busy || !state) return;
+  // A generation computed from the pre-edit board must not overwrite this edit.
+  // Keep playing; advance() schedules a fresh generation once that request ends.
+  epoch += 1;
+  const board = state.board.slice();
+  const index = y * state.width + x;
+  board[index] = !board[index];
+  state = { ...state, board };
+  draw();
+}
+
+el.board.addEventListener("click", event => {
+  if (busy || !state) return;
+  const rect = el.board.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left - el.board.clientLeft) / el.board.clientWidth * state.width);
+  const y = Math.floor((event.clientY - rect.top - el.board.clientTop) / el.board.clientHeight * state.height);
+  if (x < 0 || y < 0 || x >= state.width || y >= state.height) return;
+  selectedCell = [x, y];
+  el.board.focus({ preventScroll: true });
+  toggleCell(x, y);
+});
+el.board.addEventListener("keydown", event => {
+  if (busy || !state) return;
+  const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  if (directions[event.key]) {
+    event.preventDefault();
+    const [dx, dy] = directions[event.key];
+    selectedCell = [Math.max(0, Math.min(state.width - 1, selectedCell[0] + dx)),
+      Math.max(0, Math.min(state.height - 1, selectedCell[1] + dy))];
+    draw();
+  } else if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    if (!event.repeat) toggleCell(...selectedCell);
+  }
+});
+el.board.addEventListener("focus", draw);
+el.board.addEventListener("blur", draw);
 
 function pause() {
   running = false;
@@ -60,13 +118,14 @@ function schedule() {
 async function advance() {
   if (stepping || busy || !state) return;
   const token = epoch;
+  const runtime = worker;
   stepping = true;
   controls();
   try {
-    const result = await worker.request("step", { state });
+    const result = await runtime.request("step", { state });
     if (token === epoch) { state = result.state; draw(); }
   } catch (error) {
-    if (token === epoch) {
+    if (token === epoch || (runtime === worker && runtime.closed)) {
       pause();
       status(`${error.message} Choose Restore Conway to recover.`, true);
     }
@@ -86,6 +145,7 @@ async function resetBoard() {
     const result = await worker.request("seed", { pattern: el.pattern.value, boundary: el.boundary.value });
     if (token === epoch) {
       state = result.state;
+      el["pattern-description"].textContent = catalog.find(pattern => pattern.id === el.pattern.value).description;
       draw();
       status("Board reset. Your active rule is unchanged. Press Play to start.");
     }
@@ -181,8 +241,13 @@ window.addEventListener("pagehide", () => { pause(); worker.close(); candidate?.
 async function boot() {
   controls();
   try {
-    const response = await fetch(new URL("./default-rule.cljs", import.meta.url));
-    if (!response.ok) throw new Error("Could not load the default rule. Reload the page to try again.");
+    const [response, patternsResponse] = await Promise.all([
+      fetch(new URL("./default-rule.cljs", import.meta.url)),
+      fetch(new URL("./patterns.json", import.meta.url)),
+    ]);
+    if (!response.ok || !patternsResponse.ok) throw new Error("Could not load the rule or patterns. Reload the page to try again.");
+    catalog = await patternsResponse.json();
+    for (const pattern of catalog) el.pattern.add(new Option(pattern.name, pattern.id));
     defaultSource = await response.text();
     el.rule.value = defaultSource;
     await resetBoard();

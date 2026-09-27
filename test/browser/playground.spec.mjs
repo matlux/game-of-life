@@ -10,6 +10,84 @@ async function apply(page, source) {
   await page.getByRole("button", { name: "Apply rule", exact: true }).click();
 }
 
+async function clickCell(page, x, y) {
+  const board = page.locator("#board");
+  const bounds = await board.boundingBox();
+  await board.click({ position: { x: 1 + (x + 0.5) * (bounds.width - 2) / 60,
+    y: 1 + (y + 0.5) * (bounds.height - 2) / 60 } });
+}
+
+test("famous seeds load with explanations and reset restores a clicked cell", async ({ page }) => {
+  for (const [pattern, population] of [["pulsar", 48], ["pentadecathlon", 12],
+    ["lightweight-spaceship", 9], ["gosper-glider-gun", 36], ["acorn", 7], ["diehard", 7], ["blank", 0]]) {
+    await page.getByRole("combobox", { name: "Pattern", exact: true }).selectOption(pattern);
+    await expect(page.locator("#population")).toHaveText(String(population));
+    await expect(page.locator("#pattern-description")).not.toBeEmpty();
+    await expect(page.getByRole("button", { name: "Step", exact: true })).toBeEnabled();
+  }
+  await clickCell(page, 0, 0);
+  await expect(page.locator("#population")).toHaveText("1");
+  await expect(page.locator("#board")).toHaveAttribute("aria-label", /Selected cell 1, 1: alive/);
+  await clickCell(page, 0, 0);
+  await expect(page.locator("#population")).toHaveText("0");
+  await clickCell(page, 59, 59);
+  await expect(page.locator("#board")).toHaveAttribute("aria-label", /Selected cell 60, 60: alive/);
+  await page.getByRole("button", { name: "Reset board", exact: true }).click();
+  await expect(page.locator("#population")).toHaveText("0");
+});
+
+test("clicking during an in-flight generation preserves the edit and playback continues", async ({ page }) => {
+  await page.getByRole("combobox", { name: "Pattern", exact: true }).selectOption("blank");
+  // This is a real compiled rule: delay its first simulation call after the 18 validation calls.
+  await apply(page, `(let [calls (atom 0)] (fn [alive? _]
+    (when (= 19 (swap! calls inc))
+      (let [until (+ (.now js/Date) 1000)]
+        (loop [] (when (< (.now js/Date) until) (recur))))) alive?))`);
+  await expect(page.locator("#status")).toContainText("Rule applied");
+  await page.getByRole("button", { name: "Step", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Step", exact: true })).toBeDisabled();
+  await clickCell(page, 20, 25);
+  await expect(page.locator("#population")).toHaveText("1");
+  await expect(page.getByRole("button", { name: "Step", exact: true })).toBeEnabled();
+  await expect(page.locator("#generation")).toHaveText("0");
+  await expect(page.locator("#population")).toHaveText("1");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect.poll(async () => Number(await page.locator("#generation").textContent())).toBeGreaterThan(1);
+  await clickCell(page, 21, 25);
+  await expect(page.getByRole("button", { name: "Pause", exact: true })).toBeVisible();
+  await page.waitForTimeout(500);
+  await expect(page.locator("#population")).toHaveText("2");
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+});
+
+test("keyboard editing toggles cells without advancing time", async ({ page }) => {
+  await page.getByRole("combobox", { name: "Pattern", exact: true }).selectOption("blank");
+  await expect(page.getByRole("button", { name: "Step", exact: true })).toBeEnabled();
+  const board = page.locator("#board");
+  await board.focus();
+  await board.press("Enter");
+  await board.press("ArrowRight");
+  await board.press("Space");
+  await expect(page.locator("#population")).toHaveText("2");
+  await board.press("ArrowLeft");
+  await board.press("Space");
+  await expect(page.locator("#population")).toHaveText("1");
+  await expect(page.locator("#generation")).toHaveText("0");
+});
+
+test.describe("touch editing", () => {
+  test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+  test("maps taps to cells on the scaled mobile board", async ({ page }) => {
+    await page.getByRole("combobox", { name: "Pattern", exact: true }).selectOption("blank");
+    await expect(page.getByRole("button", { name: "Step", exact: true })).toBeEnabled();
+    const bounds = await page.locator("#board").boundingBox();
+    await page.touchscreen.tap(bounds.x + 1 + 59.5 * (bounds.width - 2) / 60,
+      bounds.y + 1 + 59.5 * (bounds.height - 2) / 60);
+    await expect(page.locator("#population")).toHaveText("1");
+    await expect(page.locator("#board")).toHaveAttribute("aria-label", /Selected cell 60, 60: alive/);
+  });
+});
+
 test("loads without external runtime requests and supports play, pause, step, reset and edges", async ({ page }) => {
   const external = [];
   page.on("request", request => {

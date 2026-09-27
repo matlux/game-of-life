@@ -24,4 +24,63 @@
 (def blinker
   {:width 60 :height 60 :cells [[29 30] [30 30] [31 30]]})
 
-(def all {:original original :glider glider :blinker blinker})
+(defn- centered [rows]
+  (let [left (quot (- 60 (apply max (map count rows))) 2)
+        top (quot (- 60 (count rows)) 2)]
+    {:width 60 :height 60
+     :cells (vec (for [[y row] (map-indexed vector rows)
+                       [x cell] (map-indexed vector row)
+                       :when (= cell \O)]
+                   [(+ left x) (+ top y)]))}))
+
+;; Standard Conway patterns; see https://conwaylife.com/wiki/Category:Patterns.
+;; Keep the seeds as readable cell diagrams, compiled for both runtimes.
+(def pulsar
+  (centered ["..OOO...OOO.." "............." "O....O.O....O"
+             "O....O.O....O" "O....O.O....O" "..OOO...OOO.."
+             "............." "..OOO...OOO.." "O....O.O....O"
+             "O....O.O....O" "O....O.O....O" "............."
+             "..OOO...OOO.."]))
+
+(def pentadecathlon
+  (centered ["..O....O.." "OO.OOOO.OO" "..O....O.."]))
+
+(def lightweight-spaceship
+  (centered [".O..O" "O...." "O...O" "OOOO."]))
+
+(def acorn (centered [".O....." "...O..." "OO..OOO"]))
+(def diehard (centered ["......O." "OO......" ".O...OOO"]))
+(def blank {:width 60 :height 60 :cells []})
+
+(def gosper-glider-gun
+  {:width 60 :height 60
+   :cells (mapv (fn [[x y]] [(+ 5 x) (+ 5 y)])
+                [[24 0] [22 1] [24 1] [12 2] [13 2] [20 2] [21 2] [34 2] [35 2]
+                 [11 3] [15 3] [20 3] [21 3] [34 3] [35 3]
+                 [0 4] [1 4] [10 4] [16 4] [20 4] [21 4]
+                 [0 5] [1 5] [10 5] [14 5] [16 5] [17 5] [22 5] [24 5]
+                 [10 6] [16 6] [24 6] [11 7] [15 7] [12 8] [13 8]])})
+
+(def catalog
+  [{:id :original :name "Original 2016 seed" :pattern original
+    :description "The original collection of interacting seeds."}
+   {:id :glider :name "Glider" :pattern glider
+    :description "A five-cell spaceship that travels diagonally: one cell every four generations."}
+   {:id :blinker :name "Blinker" :pattern blinker
+    :description "The simplest oscillator: flips between horizontal and vertical every generation."}
+   {:id :pulsar :name "Pulsar" :pattern pulsar
+    :description "A symmetric oscillator that returns to its starting shape every three generations."}
+   {:id :pentadecathlon :name "Pentadecathlon" :pattern pentadecathlon
+    :description "A long, transforming oscillator with a 15-generation cycle."}
+   {:id :lightweight-spaceship :name "Lightweight spaceship" :pattern lightweight-spaceship
+    :description "A nine-cell spaceship that travels horizontally: two cells every four generations."}
+   {:id :gosper-glider-gun :name "Gosper glider gun" :pattern gosper-glider-gun
+    :description "A repeating machine that emits a new glider every 30 generations. Try intercepting its stream."}
+   {:id :acorn :name "Acorn" :pattern acorn
+    :description "Just seven starting cells grow into a long, chaotic evolution. On this finite board, the edges affect its eventual fate."}
+   {:id :diehard :name "Diehard" :pattern diehard
+    :description "Seven cells transform repeatedly, then disappear at generation 130 with Conway’s rules and dead edges."}
+   {:id :blank :name "Empty board" :pattern blank
+    :description "Your canvas: add cells to create a pattern of your own."}])
+
+(def all (into {} (map (juxt :id :pattern) catalog)))

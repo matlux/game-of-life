@@ -17,7 +17,8 @@
     <div class="workspace">
       <section class="simulation" aria-label="Simulation">
         <div class="readout"><span>Generation <strong id="generation">0</strong></span><span>Alive <strong id="population">0</strong></span></div>
-        <canvas id="board" width="600" height="600" aria-label="Game of Life board">Your browser needs canvas support to display the simulation.</canvas>
+        <canvas id="board" width="600" height="600" tabindex="0" aria-label="Game of Life board" aria-describedby="board-help">Your browser needs canvas support to display the simulation.</canvas>
+        <p id="board-help" class="hint">Click or tap a cell to toggle it, even while playing. Keyboard: focus the board, use arrow keys to choose a cell, then Enter or Space to toggle.</p>
         <div class="controls">
           <button id="toggle" disabled>Play</button>
           <button id="step" disabled>Step</button>
@@ -25,10 +26,12 @@
           <label>Speed <input id="speed" type="range" min="1" max="20" value="5"><output id="speed-value">5 / sec</output></label>
         </div>
         <div class="settings">
-          <label>Pattern <select id="pattern"><option value="original">Original 2016 seed</option><option value="glider">Glider</option><option value="blinker">Blinker</option></select></label>
+          <label>Pattern <select id="pattern" disabled></select></label>
           <label>Edges <select id="boundary"><option value="dead">Dead edges</option><option value="wrap">Wrap around</option></select></label>
           <label>Colour <input id="colour" type="color" value="#8fda9a"></label>
         </div>
+        <p id="pattern-description" class="hint"></p>
+        <p class="hint">Pattern descriptions assume Conway’s rules. Edges and your edits can change their evolution. Reset board restores the selected seed.</p>
       </section>
       <section class="editor" aria-labelledby="rule-heading">
         <div class="editor-heading"><h2 id="rule-heading">Write the next generation</h2><span id="rule-name">Conway’s rules</span></div>

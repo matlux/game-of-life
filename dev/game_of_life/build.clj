@@ -28,6 +28,8 @@
       (io/make-parents target)
       (io/copy (io/file "web" file) target)))
   (write-file! "target/site/default-rule.cljs" (rule-source))
+  (write-file! "target/site/patterns.json"
+               (json/write-str (map #(select-keys % [:id :name :description]) patterns/catalog)))
   (write-file! "target/site/.nojekyll" "")
   (cljs/build "src" {:main 'game-of-life.worker :target :webworker
                      :output-to "target/site/js/worker.js" :output-dir "target/worker"

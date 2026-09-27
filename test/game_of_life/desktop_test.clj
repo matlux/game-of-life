@@ -13,3 +13,14 @@
     (is (:paused? stepped))
     (is (= initial (desktop/key-pressed stepped {:key :r})))
     (is (false? (:paused? (desktop/key-pressed paused {:key :space}))))))
+
+(deftest edit-desktop-cells
+  (doseq [paused? [false true]]
+    (let [initial (assoc (desktop/initial-state) :paused? paused?)
+          edited (desktop/mouse-pressed initial {:x 5 :y 5 :button :left})]
+      (is (true? (get-in edited [:board 0])))
+      (is (= paused? (:paused? edited)))
+      (is (= 0 (:generation edited)))
+      (is (= initial (desktop/mouse-pressed edited {:x 5 :y 5 :button :left})))
+      (is (= initial (desktop/mouse-pressed initial {:x -1 :y 5 :button :left})))
+      (is (= initial (desktop/mouse-pressed initial {:x 600 :y 5 :button :left}))))))

@@ -38,6 +38,8 @@ lein run
 
 Space pauses/resumes, **N** advances one generation and pauses, and **R** restores the original seed. Closing the window exits the application. The simulation advances at 10 generations per second while playing and retains only the current board.
 
+Left-click a cell to turn it on or off while playing or paused. Editing preserves the generation counter and playback state.
+
 Recent JDKs may print a native-access warning from Processing when opening the
 desktop window. The project does not add a global native-access flag; it is not
 needed to run on the tested JDKs. If startup reports
@@ -53,7 +55,11 @@ node test/web/serve.mjs
 
 Open <http://127.0.0.1:8766/game-of-life/>. The first build downloads the compiler and may take a minute. Subsequent builds reuse the compiler cache.
 
-The board starts paused. Use **Play**, **Pause**, **Step**, or **Reset board**. Choose the original seed, a glider, or a blinker; select dead edges or wraparound; change speed and colour independently of the rules.
+The board starts paused. Use **Play**, **Pause**, **Step**, or **Reset board**. Choose the original seed, Glider, Blinker, **Pulsar**, **Pentadecathlon**, **Lightweight spaceship**, **Gosper glider gun**, **Acorn**, **Diehard**, or an **Empty board**. Each preset has an explanation of what to watch for. Select dead edges or wraparound; change speed and colour independently of the rules. The descriptions assume Conway’s rules; this finite 60 × 60 board and its edges can alter travelling or long-lived patterns.
+
+**Click or tap any cell to toggle it, even while playing.** For keyboard editing, focus the board, choose a cell with the arrow keys, and press Enter or Space. An outline marks the selected cell. Edits do not advance time or pause playback. A generation calculated from the board before an edit is discarded, so it cannot overwrite the edit; the next calculation uses the edited board. Under Conway’s rules, a newly added isolated cell can naturally die on the next generation. Editing is temporarily disabled while loading, resetting, or applying a rule. **Reset board** restores the selected seed.
+
+The shared pattern catalog in `patterns.cljc` supplies both the worker’s seeds and the generated `patterns.json` dropdown labels and descriptions. These are standard [Conway patterns](https://conwaylife.com/wiki/Category:Patterns); no pattern files are fetched at runtime.
 
 The editor evaluates a ClojureScript expression whose result is a function:
 
@@ -85,7 +91,7 @@ npm run test:browser
 
 `desktop-smoke` needs a display. It opens a window, checks that at least five generations render, and closes it. Linux CI uses `xvfb-run`.
 
-The shared `.cljc` tests exercise Conway's truth table, stable/oscillating/moving patterns, rectangular boards, both boundary modes, state isolation and invalid inputs. Production-worker tests compare complete boards against JVM-generated fixtures for 20 generations in both edge modes. They also compile the canonical rule and edited functions and terminate runaway evaluation/stepping. Browser tests exercise the actual page, recovery controls, mobile layout, and operation under a `/game-of-life/` URL prefix.
+The shared `.cljc` tests exercise Conway's truth table, oscillator periods, spaceship movement, glider-gun emissions, Diehard’s 130-generation lifetime, rectangular boards, both boundary modes, state isolation and invalid inputs. Production-worker tests compare complete boards against JVM-generated fixtures for 20 generations in both edge modes. They also compile the canonical rule and edited functions and terminate runaway evaluation/stepping. Browser tests exercise the actual page, preset selection, mouse/keyboard/touch editing, edits during an in-flight generation, recovery controls, mobile layout, and operation under a `/game-of-life/` URL prefix.
 
 GitHub Actions runs JVM tests and desktop smoke tests on Java 21 and 25, plus ClojureScript, worker, and browser tests. A successful browser job uploads a `game-of-life-site` artifact and packages that same build for GitHub Pages. After all checks pass on `master`, the deployment job publishes the new playground. Pull requests never deploy. You can also manually run the workflow on `master` to rebuild, test, and publish it.
 

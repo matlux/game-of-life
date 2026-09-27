@@ -65,3 +65,27 @@
     (is (= 3600 (count (:board state))))
     (is (= (set (:cells patterns/original)) (live-cells state)))
     (is (= 100 (:generation (nth (iterate engine/step state) 100))))))
+
+(deftest famous-patterns
+  (testing "The catalog contains valid, distinct seeds"
+    (is (= (count patterns/catalog) (count patterns/all)))
+    (doseq [{:keys [pattern]} patterns/catalog]
+      (is (= (set (:cells pattern)) (live-cells (engine/new-state pattern))))))
+  (testing "Oscillators have their advertised periods"
+    (doseq [[pattern period population] [[patterns/pulsar 3 48] [patterns/pentadecathlon 15 12]]]
+      (let [states (iterate engine/step (engine/new-state pattern))]
+        (is (= population (count (live-cells (first states)))))
+        (is (= (:board (first states)) (:board (nth states period))))
+        (is (every? #(not= (:board (first states)) (:board %)) (take (dec period) (rest states)))))))
+  (testing "The lightweight spaceship travels two cells left in four generations"
+    (let [initial (engine/new-state patterns/lightweight-spaceship)]
+      (is (= 9 (count (live-cells initial))))
+      (is (= (set (map (fn [[x y]] [(- x 2) y]) (live-cells initial)))
+             (live-cells (nth (iterate engine/step initial) 4))))))
+  (testing "The gun emits a glider every 30 generations before reaching the edges"
+    (let [states (iterate engine/step (engine/new-state patterns/gosper-glider-gun))]
+      (is (= [36 41 46] (mapv #(count (live-cells (nth states %))) [0 30 60])))))
+  (testing "Diehard dies at generation 130 on our actual finite board"
+    (let [states (iterate engine/step (engine/new-state patterns/diehard))]
+      (is (seq (live-cells (nth states 129))))
+      (is (empty? (live-cells (nth states 130)))))))
