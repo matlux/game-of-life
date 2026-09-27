@@ -29,9 +29,9 @@ test("loads without external runtime requests and supports play, pause, step, re
   await expect(page.locator("#generation")).toHaveText(generation);
   await page.getByRole("button", { name: "Reset board", exact: true }).click();
   await expect(page.locator("#generation")).toHaveText("0");
-  await page.getByLabel("Pattern", { exact: true }).selectOption("blinker");
+  await page.getByRole("combobox", { name: "Pattern", exact: true }).selectOption("blinker");
   await expect(page.locator("#population")).toHaveText("3");
-  await page.getByLabel("Edges", { exact: true }).selectOption("wrap");
+  await page.getByRole("combobox", { name: "Edges", exact: true }).selectOption("wrap");
   await expect(page.getByRole("button", { name: "Step", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Step", exact: true }).click();
   await expect(page.locator("#generation")).toHaveText("1");
